@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+
+<title>برنامه ورزشی من</title>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background:#111827;
+    color:white;
+    font-family:tahoma,sans-serif;
+    padding:15px;
+}
+
+.container{
+    max-width:700px;
+    margin:auto;
+}
+
+h1{
+    text-align:center;
+    margin-bottom:20px;
+}
+
+.progress-container{
+    width:100%;
+    height:20px;
+    background:#374151;
+    border-radius:50px;
+    overflow:hidden;
+    margin-bottom:10px;
+}
+
+.progress-bar{
+    height:100%;
+    width:0%;
+    background:#22c55e;
+    transition:.3s;
+}
+
+.progress-text{
+    text-align:center;
+    margin-bottom:20px;
+}
+
+.task{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:#1f2937;
+    padding:14px;
+    border-radius:12px;
+    margin-bottom:10px;
+}
+
+.check{
+    width:24px;
+    height:24px;
+    border-radius:50%;
+    background:#ef4444;
+    cursor:pointer;
+    flex-shrink:0;
+    transition:.3s;
+}
+
+.task.done .check{
+    background:#22c55e;
+}
+
+.task.done span{
+    text-decoration:line-through;
+    opacity:.7;
+}
+
+.time{
+    width:80px;
+    padding:6px;
+    border:none;
+    border-radius:8px;
+    text-align:center;
+}
+
+.task span{
+    flex:1;
+}
+
+@media(max-width:600px){
+
+    .task{
+        flex-wrap:wrap;
+    }
+
+    .task span{
+        width:100%;
+        order:3;
+        margin-top:5px;
+    }
+
+    .time{
+        width:75px;
+    }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>💪 برنامه روزانه</h1>
+
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <p class="progress-text">
+        انجام شده:
+        <span id="progressText">0%</span>
+    </p>
+
+    <div class="task" data-id="1">
+        <div class="check"></div>
+        <input class="time" type="time" value="06:30">
+        <span>🏃 دویدن یا پیاده‌روی تند صبح</span>
+    </div>
+
+    <div class="task" data-id="2">
+        <div class="check"></div>
+        <input class="time" type="time" value="07:15">
+        <span>💪 ۳ دور شنا</span>
+    </div>
+
+    <div class="task" data-id="3">
+        <div class="check"></div>
+        <input class="time" type="time" value="07:30">
+        <span>🦵 ۳ دور اسکوات</span>
+    </div>
+
+    <div class="task" data-id="4">
+        <div class="check"></div>
+        <input class="time" type="time" value="17:00">
+        <span>🏞 تمرین عصر در پارک</span>
+    </div>
+
+    <div class="task" data-id="5">
+        <div class="check"></div>
+        <input class="time" type="time" value="17:30">
+        <span>🧗 بارفیکس و آویزان شدن</span>
+    </div>
+
+    <div class="task" data-id="6">
+        <div class="check"></div>
+        <input class="time" type="time" value="18:00">
+        <span>🪽 فرشته دیواری</span>
+    </div>
+
+    <div class="task" data-id="7">
+        <div class="check"></div>
+        <input class="time" type="time" value="18:10">
+        <span>🦸 سوپرمن</span>
+    </div>
+
+    <div class="task" data-id="8">
+        <div class="check"></div>
+        <input class="time" type="time" value="22:00">
+        <span>💧 نوشیدن ۳ لیتر آب</span>
+    </div>
+
+</div>
+
+<script>
+
+// خوش آمد گویی فقط بار اول
+if(!localStorage.getItem("welcomeShown")){
+
+    Swal.fire({
+        title:"سلام قهرمان 💪",
+        text:"امروز برنامه رو کامل انجام بده!",
+        confirmButtonText:"بزن بریم"
+    });
+
+    localStorage.setItem("welcomeShown","true");
+}
+
+
+// ریست خودکار هر روز
+
+const today = new Date().toDateString();
+const savedDate = localStorage.getItem("lastDate");
+
+if(savedDate !== today){
+
+    document.querySelectorAll(".task").forEach(task=>{
+
+        localStorage.setItem(
+            "task_"+task.dataset.id,
+            "false"
+        );
+
+    });
+
+    localStorage.setItem("lastDate",today);
+}
+
+
+// بارگذاری اطلاعات
+
+document.querySelectorAll(".task").forEach(task=>{
+
+    const id = task.dataset.id;
+
+    const savedStatus =
+    localStorage.getItem("task_"+id);
+
+    if(savedStatus === "true"){
+        task.classList.add("done");
+    }
+
+    const savedTime =
+    localStorage.getItem("time_"+id);
+
+    if(savedTime){
+        task.querySelector(".time").value =
+        savedTime;
+    }
+
+    task.querySelector(".check")
+    .addEventListener("click",()=>{
+
+        task.classList.toggle("done");
+
+        localStorage.setItem(
+            "task_"+id,
+            task.classList.contains("done")
+        );
+
+        updateProgress();
+
+    });
+
+    task.querySelector(".time")
+    .addEventListener("change",(e)=>{
+
+        localStorage.setItem(
+            "time_"+id,
+            e.target.value
+        );
+
+    });
+
+});
+
+
+// درصد پیشرفت
+
+function updateProgress(){
+
+    const total =
+    document.querySelectorAll(".task").length;
+
+    const done =
+    document.querySelectorAll(".task.done").length;
+
+    const percent =
+    Math.round((done/total)*100);
+
+    document.getElementById("progressBar")
+    .style.width = percent + "%";
+
+    document.getElementById("progressText")
+    .innerText = percent + "%";
+
+}
+
+updateProgress();
+
+</script>
+
+</body>
+</html>
